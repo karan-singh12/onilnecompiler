@@ -51,9 +51,36 @@ const Codebox = () => {
       // Simulate code execution by logging the code and selected language to the console
       console.log('Running code:', code);
       console.log('Selected language:', selectedLanguage);
-      // For a real online compiler, you would send the code and language to a backend for execution
-      // and update the 'output' state with the result.
-      setOutput('Code execution result will be shown here.');
+      const apiPayload = {
+        lang: selectedLanguage,
+        code: code,
+        max_cpu_time: 10, // Set the desired max CPU time
+        max_memory: 104857600, // Set the desired max memory
+      };
+      // Make the API request
+    fetch(`http://compile:8080/api/${selectedLanguage}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(apiPayload),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      // Handle the API response
+      if (data.error) {
+        // Handle code error (if any)
+        console.error('Comilation error:', data.error);
+        setOutput('Comilation error:', data.error);
+      } else {
+        // Set the output state with the API response
+        setOutput(data.output || 'Code execution Successfully');
+      }
+    })
+    .catch((error) => {
+      console.error('Error during API request:', error);
+      setOutput('Error during code execution.');
+    });
     };
   
     return (
@@ -63,7 +90,7 @@ const Codebox = () => {
           <div className="language-dropdown">
             <label htmlFor="language" color='#fff'>Select Language:</label>
             <select id="language" value={selectedLanguage} onChange={handleLanguageChange}>
-              <option value="javascript">JavaScript</option>
+              <option value="JS">JavaScript</option>
               <option value="python">Python</option>
               {/* Add more language options as needed */}
             </select>
